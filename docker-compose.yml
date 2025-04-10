@@ -1,0 +1,39 @@
+
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus  # 使用 Docker Volume 持久化數據
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"  # 保留 7 天數據
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    ports:
+      - "9115:9115"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    volumes:
+      - ./config/grafana.ini:/etc/grafana/grafana.ini  # 掛載本地 grafana.ini 配置
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "30000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # 修改 Grafana 管理員密碼
+      - TZ=Asia/Taipei  # 設定台灣時區
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

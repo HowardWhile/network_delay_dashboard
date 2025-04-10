@@ -1,0 +1,21 @@
+global:
+  scrape_interval: 30s  # 每 30 秒執行一次測試
+
+scrape_configs:
+  - job_name: 'blackbox'
+    scrape_interval: 1s  # 只對 Blackbox Exporter 設定 5 秒採樣
+    metrics_path: /probe
+    params:
+      module: [icmp]  # 使用 ICMP (ping) 測試
+    static_configs:
+      - targets:
+        - 8.8.8.8  # Google DNS
+        - 1.1.1.1  # Cloudflare DNS
+        - hinet.net  # 你想監測的網站
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115  # 指定 Blackbox Exporter 端口
